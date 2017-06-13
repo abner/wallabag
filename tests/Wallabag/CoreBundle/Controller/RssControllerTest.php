@@ -12,40 +12,39 @@ class RssControllerTest extends WallabagCoreTestCase
         $doc->loadXML($xml);
 
         $xpath = new \DOMXpath($doc);
+        $xpath->registerNamespace('a', 'http://www.w3.org/2005/Atom');
 
         if (null === $nb) {
-            $this->assertGreaterThan(0, $xpath->query('//item')->length);
+            $this->assertGreaterThan(0, $xpath->query('//a:entry')->length);
         } else {
-            $this->assertEquals($nb, $xpath->query('//item')->length);
+            $this->assertEquals($nb, $xpath->query('//a:entry')->length);
         }
 
-        $this->assertEquals(1, $xpath->query('/rss')->length);
-        $this->assertEquals(1, $xpath->query('/rss/channel')->length);
+        $this->assertEquals(1, $xpath->query('/a:feed')->length);
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/title')->length);
-        $this->assertEquals('wallabag — '.$type.' feed', $xpath->query('/rss/channel/title')->item(0)->nodeValue);
+        $this->assertEquals(1, $xpath->query('/a:feed/a:title')->length);
+        $this->assertEquals('wallabag — '.$type.' feed', $xpath->query('/a:feed/a:title')->item(0)->nodeValue);
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/pubDate')->length);
+        $this->assertEquals(1, $xpath->query('/a:feed/a:updated')->length);
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/generator')->length);
-        $this->assertEquals('wallabag', $xpath->query('/rss/channel/generator')->item(0)->nodeValue);
+        $this->assertEquals(1, $xpath->query('/a:feed/a:generator')->length);
+        $this->assertEquals('wallabag', $xpath->query('/a:feed/a:generator')->item(0)->nodeValue);
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/description')->length);
-        $this->assertEquals('wallabag '.$type.' elements', $xpath->query('/rss/channel/description')->item(0)->nodeValue);
+        $this->assertEquals(1, $xpath->query('/a:feed/a:subtitle')->length);
+        $this->assertEquals('RSS feed for '.$type.' entries', $xpath->query('/a:feed/a:subtitle')->item(0)->nodeValue);
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/link[@rel="self"]')->length);
-        $this->assertContains($type.'.xml', $xpath->query('/rss/channel/link[@rel="self"]')->item(0)->getAttribute('href'));
+        $this->assertEquals(1, $xpath->query('/a:feed/a:link[@rel="self"]')->length);
+        $this->assertContains($type, $xpath->query('/a:feed/a:link[@rel="self"]')->item(0)->getAttribute('href'));
 
-        $this->assertEquals(1, $xpath->query('/rss/channel/link[@rel="last"]')->length);
-        $this->assertContains($type.'.xml?page=', $xpath->query('/rss/channel/link[@rel="last"]')->item(0)->getAttribute('href'));
+        $this->assertEquals(1, $xpath->query('/a:feed/a:link[@rel="last"]')->length);
 
-        foreach ($xpath->query('//item') as $item) {
-            $this->assertEquals(1, $xpath->query('title', $item)->length);
-            $this->assertEquals(1, $xpath->query('source', $item)->length);
-            $this->assertEquals(1, $xpath->query('link', $item)->length);
-            $this->assertEquals(1, $xpath->query('guid', $item)->length);
-            $this->assertEquals(1, $xpath->query('pubDate', $item)->length);
-            $this->assertEquals(1, $xpath->query('description', $item)->length);
+        foreach ($xpath->query('//a:entry') as $item) {
+            $this->assertEquals(1, $xpath->query('a:title', $item)->length);
+            $this->assertEquals(1, $xpath->query('a:link[@rel="via"]', $item)->length);
+            $this->assertEquals(1, $xpath->query('a:link[@rel="alternate"]', $item)->length);
+            $this->assertEquals(1, $xpath->query('a:id', $item)->length);
+            $this->assertEquals(1, $xpath->query('a:published', $item)->length);
+            $this->assertEquals(1, $xpath->query('a:content', $item)->length);
         }
     }
 
@@ -53,13 +52,13 @@ class RssControllerTest extends WallabagCoreTestCase
     {
         return [
             [
-                '/admin/YZIOAUZIAO/unread.xml',
+                '/feed/admin/YZIOAUZIAO/unread',
             ],
             [
-                '/wallace/YZIOAUZIAO/starred.xml',
+                '/feed/wallace/YZIOAUZIAO/starred',
             ],
             [
-                '/wallace/YZIOAUZIAO/archives.xml',
+                '/feed/wallace/YZIOAUZIAO/archives',
             ],
         ];
     }
@@ -90,7 +89,7 @@ class RssControllerTest extends WallabagCoreTestCase
         $em->persist($config);
         $em->flush();
 
-        $client->request('GET', '/admin/SUPERTOKEN/unread.xml');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/unread');
 
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
 
@@ -112,7 +111,7 @@ class RssControllerTest extends WallabagCoreTestCase
         $em->flush();
 
         $client = $this->getClient();
-        $client->request('GET', '/admin/SUPERTOKEN/starred.xml');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/starred');
 
         $this->assertEquals(200, $client->getResponse()->getStatusCode(), 1);
 
@@ -134,7 +133,7 @@ class RssControllerTest extends WallabagCoreTestCase
         $em->flush();
 
         $client = $this->getClient();
-        $client->request('GET', '/admin/SUPERTOKEN/archive.xml');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/archive');
 
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
 
@@ -157,15 +156,15 @@ class RssControllerTest extends WallabagCoreTestCase
 
         $client = $this->getClient();
 
-        $client->request('GET', '/admin/SUPERTOKEN/unread.xml');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/unread');
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         $this->validateDom($client->getResponse()->getContent(), 'unread');
 
-        $client->request('GET', '/admin/SUPERTOKEN/unread.xml?page=2');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/unread/2');
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         $this->validateDom($client->getResponse()->getContent(), 'unread');
 
-        $client->request('GET', '/admin/SUPERTOKEN/unread.xml?page=3000');
+        $client->request('GET', '/feed/admin/SUPERTOKEN/unread/3000');
         $this->assertEquals(302, $client->getResponse()->getStatusCode());
     }
 }
