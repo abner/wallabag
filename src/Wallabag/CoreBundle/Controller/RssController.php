@@ -7,7 +7,6 @@ use Pagerfanta\Exception\OutOfRangeCurrentPageException;
 use Pagerfanta\Pagerfanta;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Wallabag\CoreBundle\Entity\Entry;
 use Wallabag\UserBundle\Entity\User;
@@ -23,6 +22,7 @@ class RssController extends Controller
      *
      * @param User $user
      * @param $page
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function showUnreadAction(User $user, $page)
@@ -38,6 +38,7 @@ class RssController extends Controller
      *
      * @param User $user
      * @param $page
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function showArchiveAction(User $user, $page)
@@ -53,6 +54,7 @@ class RssController extends Controller
      *
      * @param User $user
      * @param $page
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function showStarredAction(User $user, $page)
