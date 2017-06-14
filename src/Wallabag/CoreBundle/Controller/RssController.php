@@ -18,6 +18,7 @@ class RssController extends Controller
      * Shows unread entries for current user.
      *
      * @Route("/feed/{username}/{token}/unread/{page}", name="unread_rss", defaults={"page": 1})
+     * @Route("/{username}/{token}/unread.xml", defaults={"page": 1})
      * @ParamConverter("user", class="WallabagUserBundle:User", converter="username_rsstoken_converter")
      *
      * @param User $user
@@ -34,6 +35,7 @@ class RssController extends Controller
      * Shows read entries for current user.
      *
      * @Route("/feed/{username}/{token}/archive/{page}", name="archive_rss", defaults={"page": 1})
+     * @Route("/{username}/{token}/archive.xml", defaults={"page": 1})
      * @ParamConverter("user", class="WallabagUserBundle:User", converter="username_rsstoken_converter")
      *
      * @param User $user
@@ -50,6 +52,7 @@ class RssController extends Controller
      * Shows starred entries for current user.
      *
      * @Route("/feed/{username}/{token}/starred/{page}", name="starred_rss", defaults={"page": 1})
+     * @Route("/{username}/{token}/starred.xml", defaults={"page": 1})
      * @ParamConverter("user", class="WallabagUserBundle:User", converter="username_rsstoken_converter")
      *
      * @param User $user
